@@ -1,0 +1,16 @@
+# This is the base docker-compose file for the service in all environments
+# it is combined with the docker-compose.override.yml file in local dev
+# and with the docker-compose.qa.yml file in QA
+# and with the docker-compose.prod.yml file in Production
+services:
+  projectservice:
+    restart: always
+    image: projectservice
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      Keycloak__OAuthClientId: ${Keycloak__OAuthClientId}
+      Keycloak__Authority: ${Keycloak__Authority}
+      Keycloak__Audience: ${Keycloak__Audience}
+      Keycloak__AuthClientSecret: ${Keycloak__AuthClientSecret}

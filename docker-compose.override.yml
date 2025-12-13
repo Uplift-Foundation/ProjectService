@@ -1,0 +1,30 @@
+# This override helps with local development by using a local database and setting the ASPNETCORE_ENVIRONMENT to Development
+# If you run docker compose up without specifiying any other compose file, it will use this file to override the base docker-compose.yml file
+services:
+  projectdb:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5440:5432"
+
+  projectservice:
+    ports:
+      - "87:80"
+    environment:
+      ConnectionString__DefaultConnection: ${ConnectionString__DefaultConnection}
+      Keycloak__OAuthClientId: ${Keycloak__OAuthClientId}
+      Keycloak__Authority: ${Keycloak__Authority}
+      Keycloak__Audience: ${Keycloak__Audience}
+      Keycloak__AuthClientSecret: ${Keycloak__AuthClientSecret}
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 80
+    depends_on:
+      projectdb:
+        condition: service_healthy

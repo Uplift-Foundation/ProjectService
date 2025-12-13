@@ -1,0 +1,7 @@
+# QA environment configuration
+# Used with: docker compose -f docker-compose.yml -f docker-compose.qa.yml up
+services:
+  projectservice:
+    environment:
+      ASPNETCORE_ENVIRONMENT: QA
+      ASPNETCORE_HTTP_PORTS: 80

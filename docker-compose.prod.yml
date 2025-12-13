@@ -1,0 +1,7 @@
+# Production environment configuration
+# Used with: docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+services:
+  projectservice:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: 80
