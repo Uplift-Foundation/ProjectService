@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
 using Asp.Versioning.ApiExplorer;
 using ProjectService.Data;
+using ProjectService.Services;
 using DotNetEnv;
 
 // Load environment variables from .env file (most likely local dev)
@@ -78,6 +79,22 @@ builder.Services.AddApiVersioning(options =>
 builder.Services.AddDbContext<ProjectContext>(options =>
     options.UseNpgsql(Environment.GetEnvironmentVariable("ConnectionStringsDefaultConnection")));
 
+// Configure HttpClients for microservice communication
+var habitServiceUrl = Environment.GetEnvironmentVariable("HabitService__Url") ?? "http://localhost:82";
+var taskServiceUrl = Environment.GetEnvironmentVariable("TaskService__Url") ?? "http://localhost:83";
+
+builder.Services.AddHttpClient<IHabitServiceClient, HabitServiceClient>(client =>
+{
+    client.BaseAddress = new Uri(habitServiceUrl);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+
+builder.Services.AddHttpClient<ITaskServiceClient, TaskServiceClient>(client =>
+{
+    client.BaseAddress = new Uri(taskServiceUrl);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
@@ -85,7 +102,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>{
     options.AddServer(new OpenApiServer { Url = "https://localhost:7257", Description = "Local dotnet run Server (HTTPS)" });
     options.AddServer(new OpenApiServer { Url = "http://localhost:5153", Description = "Local dotnet run Server (HTTP)" });
-    options.AddServer(new OpenApiServer { Url = "http://localhost:87", Description = "Local Docker Compose Server" });
+    options.AddServer(new OpenApiServer { Url = "http://localhost:89", Description = "Local Docker Compose Server" });
     options.AddServer(new OpenApiServer { Url = "https://localhost/project", Description = "Local Kubernetes Server" });
     options.AddServer(new OpenApiServer { Url = "https://forgetmenotqa.uplifttech.org/project", Description = "Cloud QA Server" });
     options.AddServer(new OpenApiServer { Url = "https://forgetmenot.uplifttech.org/project", Description = "Cloud Prod Server" });
