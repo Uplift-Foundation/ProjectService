@@ -85,7 +85,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>{
     options.AddServer(new OpenApiServer { Url = "https://localhost:7257", Description = "Local dotnet run Server (HTTPS)" });
     options.AddServer(new OpenApiServer { Url = "http://localhost:5153", Description = "Local dotnet run Server (HTTP)" });
-    options.AddServer(new OpenApiServer { Url = "http://localhost:87", Description = "Local Docker Compose Server" });
+    options.AddServer(new OpenApiServer { Url = "http://localhost:89", Description = "Local Docker Compose Server" });
     options.AddServer(new OpenApiServer { Url = "https://localhost/project", Description = "Local Kubernetes Server" });
     options.AddServer(new OpenApiServer { Url = "https://forgetmenotqa.uplifttech.org/project", Description = "Cloud QA Server" });
     options.AddServer(new OpenApiServer { Url = "https://forgetmenot.uplifttech.org/project", Description = "Cloud Prod Server" });
