@@ -1,6 +1,3 @@
-
-version: '3.4'
-
 services:
   projectdb:
     image: postgres
@@ -22,7 +19,7 @@ services:
     environment:
       DATA_SOURCE_NAME: "postgresql://postgres:${POSTGRES_PASSWORD}@projectdb:5432/${POSTGRES_DB}?sslmode=disable"
     ports:
-      - "9192:9187"
+      - "9189:9187"
     networks:
       forgetmenot:
     depends_on:
