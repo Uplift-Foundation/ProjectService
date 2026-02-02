@@ -23,6 +23,8 @@ services:
       Keycloak__Authority: ${Keycloak__Authority}
       Keycloak__Audience: ${Keycloak__Audience}
       Keycloak__AuthClientSecret: ${Keycloak__AuthClientSecret}
+      HabitService__Url: ${HabitService__Url}
+      TaskService__Url: ${TaskService__Url}
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: 80
     depends_on:

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The **ProjectService** is a RESTful API microservice within the Forget Me Not (FMN) application ecosystem that manages projects for organizing habits and tasks. Projects serve as containers that group related habits and tasks together, helping users organize their productivity goals into meaningful collections.
+The **ProjectService** is a RESTful API microservice within the Forget Me Not (FMN) application ecosystem that manages organizational containers for grouping related habits and tasks. This service helps users organize their activities into meaningful collections with color-coding, status tracking, and project-level analytics.
 
 ### Key Features
 
@@ -11,6 +11,10 @@ The **ProjectService** is a RESTful API microservice within the Forget Me Not (F
 - Color-coded projects for visual organization
 - User-specific project isolation with authentication
 - Link habits and tasks to projects via ProjectId reference
+- Group habits and tasks into organized collections
+- Color-coded projects for visual organization
+- Status tracking (Active, Archived, Completed)
+- User-specific project isolation with authentication
 - RESTful API with OAuth2 authentication via Keycloak
 - PostgreSQL database for reliable data persistence
 - API versioning support
