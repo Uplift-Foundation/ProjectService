@@ -1,4 +1,3 @@
-
 services:
   projectdb_qa:
     image: postgres
