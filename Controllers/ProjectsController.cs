@@ -1,5 +1,7 @@
 using System.Security.Claims;
 using ProjectService.Data;
+using ProjectService.DTOs;
+using ProjectService.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,10 +16,17 @@ namespace ProjectService.Controllers
     public class ProjectsController : ControllerBase
     {
         private readonly ProjectContext _context;
+        private readonly IHabitServiceClient _habitServiceClient;
+        private readonly ITaskServiceClient _taskServiceClient;
 
-        public ProjectsController(ProjectContext context)
+        public ProjectsController(
+            ProjectContext context,
+            IHabitServiceClient habitServiceClient,
+            ITaskServiceClient taskServiceClient)
         {
             _context = context;
+            _habitServiceClient = habitServiceClient;
+            _taskServiceClient = taskServiceClient;
         }
 
         // POST: api/Projects
@@ -75,6 +84,73 @@ namespace ProjectService.Controllers
             return await _context.Projects
                 .Where(p => p.UserId == userId && p.Status == ProjectStatus.Active)
                 .ToListAsync();
+        }
+
+        // GET: api/Projects/5/with-items
+        [HttpGet("{id}/with-items")]
+        public async Task<ActionResult<ProjectWithItemsDto>> GetProjectWithItems(int id)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
+
+            if (project == null)
+            {
+                return NotFound();
+            }
+
+            // Get auth token from current request
+            var authToken = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+            // Fetch habits and tasks for this project
+            var habits = await _habitServiceClient.GetHabitsByProjectIdAsync(id, authToken);
+            var tasks = await _taskServiceClient.GetTasksByProjectIdAsync(id, authToken);
+
+            var result = new ProjectWithItemsDto
+            {
+                Id = project.Id,
+                UserId = project.UserId,
+                Name = project.Name,
+                Description = project.Description,
+                SelectedColorHexCode = project.SelectedColorHexCode,
+                Status = project.Status,
+                CreatedDate = project.CreatedDate,
+                CompletedDate = project.CompletedDate,
+                Habits = habits,
+                Tasks = tasks
+            };
+
+            return result;
+        }
+
+        // GET: api/Projects/with-items
+        [HttpGet("with-items")]
+        public async Task<ActionResult<IEnumerable<ProjectWithItemsDto>>> GetProjectsWithItems()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var projects = await _context.Projects.Where(p => p.UserId == userId).ToListAsync();
+
+            // Get auth token from current request
+            var authToken = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+            // Fetch all habits and tasks for this user
+            var allHabits = await _habitServiceClient.GetHabitsByUserAsync(authToken);
+            var allTasks = await _taskServiceClient.GetTasksByUserAsync(authToken);
+
+            var result = projects.Select(project => new ProjectWithItemsDto
+            {
+                Id = project.Id,
+                UserId = project.UserId,
+                Name = project.Name,
+                Description = project.Description,
+                SelectedColorHexCode = project.SelectedColorHexCode,
+                Status = project.Status,
+                CreatedDate = project.CreatedDate,
+                CompletedDate = project.CompletedDate,
+                Habits = allHabits.Where(h => h.ProjectId == project.Id).ToList(),
+                Tasks = allTasks.Where(t => t.ProjectId == project.Id).ToList()
+            }).ToList();
+
+            return result;
         }
 
         // PUT: api/Projects/5
