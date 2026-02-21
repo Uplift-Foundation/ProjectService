@@ -1,7 +1,52 @@
-# QA environment configuration
-# Used with: docker compose -f docker-compose.yml -f docker-compose.qa.yml up
 services:
-  projectservice:
+  projectdb_qa:
+    image: postgres
     environment:
-      ASPNETCORE_ENVIRONMENT: QA
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "25440:5432"
+    networks:
+      forgetmenot_qa:
+    volumes:
+      - project_db_qa_storage:/var/lib/postgresql/data
+  projectservice_qa:
+    ports:
+      - "287:80"
+    environment:
+      VIRTUAL_HOST: forgetmenotqa.uplifttech.org, forgetmenotqa4.uplifttech.org
+      VIRTUAL_PORT: 80
+      VIRTUAL_PROTO: http
+      LETSENCRYPT_HOST: forgetmenotqa.uplifttech.org, forgetmenotqa4.uplifttech.org
+      LETSENCRYPT_EMAIL: wthompson@uplifttech.org
+      ConnectionString__DefaultConnection: ${ConnectionString__DefaultConnection}
+      Keycloak__OAuthClientId: ${Keycloak__OAuthClientId}
+      Keycloak__AuthClientSecret: ${Keycloak__AuthClientSecret}
+      Keycloak__Authority: ${Keycloak__Authority}
+      Keycloak__Audience: ${Keycloak__Audience}
+      ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: 80
+    restart: always
+    image: projectservice_qa
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      forgetmenot_qa:
+    depends_on:
+      projectdb_qa:
+        condition: service_healthy
+
+networks:
+  forgetmenot_qa:
+    external: true
+
+volumes:
+  project_db_qa_storage:
+    external: true
