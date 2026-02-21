@@ -9,7 +9,8 @@ on:
   schedule:
     - cron: '29 1 * * *'
   push:
-    branches: [ "develop" ]
+    branches: [ "develop", "main" ]
+    tags: [ "v*" ]
   pull_request:
     branches: [ "develop" ]
   workflow_dispatch:
