@@ -180,6 +180,8 @@ namespace ProjectService.Controllers
             existingProject.Description = project.Description;
             existingProject.SelectedColorHexCode = project.SelectedColorHexCode;
             existingProject.Status = project.Status;
+            existingProject.BeforePictureUrl = project.BeforePictureUrl;
+            existingProject.AfterPictureUrl = project.AfterPictureUrl;
 
             // If status changed to Completed, set CompletedDate
             if (project.Status == ProjectStatus.Completed && existingProject.CompletedDate == null)

@@ -28,4 +28,14 @@ public class Project
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
     public DateTime? CompletedDate { get; set; }
+
+    /// <summary>
+    /// Base64 data URL for the before picture
+    /// </summary>
+    public string? BeforePictureUrl { get; set; }
+
+    /// <summary>
+    /// Base64 data URL for the after picture
+    /// </summary>
+    public string? AfterPictureUrl { get; set; }
 }
