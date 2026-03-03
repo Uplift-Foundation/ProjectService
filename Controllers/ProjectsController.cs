@@ -37,6 +37,9 @@ namespace ProjectService.Controllers
             {
                 project.UserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 project.CreatedDate = DateTime.UtcNow;
+                // Ensure dates are UTC for PostgreSQL
+                project.StartDate = DateTime.SpecifyKind(project.StartDate, DateTimeKind.Utc);
+                project.DueDate = DateTime.SpecifyKind(project.DueDate, DateTimeKind.Utc);
                 _context.Projects.Add(project);
                 await _context.SaveChangesAsync();
 
@@ -180,6 +183,9 @@ namespace ProjectService.Controllers
             existingProject.Description = project.Description;
             existingProject.SelectedColorHexCode = project.SelectedColorHexCode;
             existingProject.Status = project.Status;
+            // Ensure dates are UTC for PostgreSQL
+            existingProject.StartDate = DateTime.SpecifyKind(project.StartDate, DateTimeKind.Utc);
+            existingProject.DueDate = DateTime.SpecifyKind(project.DueDate, DateTimeKind.Utc);
             existingProject.BeforePictureUrl = project.BeforePictureUrl;
             existingProject.AfterPictureUrl = project.AfterPictureUrl;
 
