@@ -28,4 +28,14 @@ public class Project
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
     public DateTime? CompletedDate { get; set; }
+
+    public DateTime StartDate { get; set; } = DateTime.UtcNow;
+
+    public DateTime DueDate { get; set; } = DateTime.UtcNow.AddDays(30);
+
+    [MaxLength(500)]
+    public string? BeforePictureUrl { get; set; }
+
+    [MaxLength(500)]
+    public string? AfterPictureUrl { get; set; }
 }
