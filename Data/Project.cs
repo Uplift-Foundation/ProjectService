@@ -29,13 +29,13 @@ public class Project
 
     public DateTime? CompletedDate { get; set; }
 
-    /// <summary>
-    /// Base64 data URL for the before picture
-    /// </summary>
+    public DateTime StartDate { get; set; } = DateTime.UtcNow;
+
+    public DateTime DueDate { get; set; } = DateTime.UtcNow.AddDays(30);
+
+    [MaxLength(500)]
     public string? BeforePictureUrl { get; set; }
 
-    /// <summary>
-    /// Base64 data URL for the after picture
-    /// </summary>
+    [MaxLength(500)]
     public string? AfterPictureUrl { get; set; }
 }
