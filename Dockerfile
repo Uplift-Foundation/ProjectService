@@ -1,9 +1,9 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 EXPOSE 80
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-RUN dotnet tool install --global dotnet-ef --version 8.0.0
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+RUN dotnet tool install --global dotnet-ef --version 10.0.0
 ENV PATH="${PATH}:/root/.dotnet/tools"
 WORKDIR /src
 COPY ["ProjectService/ProjectService.csproj", "ProjectService/"]
