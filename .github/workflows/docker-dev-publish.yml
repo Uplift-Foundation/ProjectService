@@ -33,6 +33,9 @@ jobs:
       # with sigstore/fulcio when running outside of PRs.
       id-token: write
 
+    env:
+      GH_PAT_AVAILABLE: ${{ secrets.GH_PAT != '' }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -41,7 +44,7 @@ jobs:
 
       - name: Checkout FMN.Vault shared library
         uses: actions/checkout@v4
-        if: ${{ secrets.GH_PAT != '' }}
+        if: env.GH_PAT_AVAILABLE == 'true'
         with:
           repository: Uplift-Foundation/FMN-Core
           sparse-checkout: FMN.Vault
@@ -50,7 +53,7 @@ jobs:
           token: ${{ secrets.GH_PAT }}
 
       - name: Checkout FMN.Vault (fallback via GitHub API)
-        if: ${{ secrets.GH_PAT == '' }}
+        if: env.GH_PAT_AVAILABLE != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
