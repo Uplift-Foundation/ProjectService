@@ -6,10 +6,12 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 RUN dotnet tool install --global dotnet-ef --version 8.0.0
 ENV PATH="${PATH}:/root/.dotnet/tools"
 WORKDIR /src
-COPY ["ProjectService.csproj", "./"]
-RUN dotnet restore "./ProjectService.csproj"
-COPY . .
-WORKDIR "/src/."
+COPY ["ProjectService/ProjectService.csproj", "ProjectService/"]
+COPY ["FMN.Vault/FMN.Vault.csproj", "FMN.Vault/"]
+RUN dotnet restore "ProjectService/ProjectService.csproj"
+COPY ProjectService/ ProjectService/
+COPY FMN.Vault/ FMN.Vault/
+WORKDIR "/src/ProjectService"
 RUN dotnet build "ProjectService.csproj" -c Release -o /app/build
 
 FROM build AS publish

@@ -7,8 +7,8 @@ services:
     restart: always
     image: projectservice
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: ProjectService/Dockerfile
     environment:
       Keycloak__OAuthClientId: ${Keycloak__OAuthClientId}
       Keycloak__Authority: ${Keycloak__Authority}
