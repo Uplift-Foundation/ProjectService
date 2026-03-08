@@ -41,12 +41,26 @@ jobs:
 
       - name: Checkout FMN.Vault shared library
         uses: actions/checkout@v4
+        if: ${{ secrets.GH_PAT != '' }}
         with:
           repository: Uplift-Foundation/FMN-Core
           sparse-checkout: FMN.Vault
           sparse-checkout-cone-mode: true
           path: _fmn-core
           token: ${{ secrets.GH_PAT }}
+
+      - name: Checkout FMN.Vault (fallback via GitHub API)
+        if: ${{ secrets.GH_PAT == '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "GH_PAT not configured. Downloading FMN.Vault via GitHub API..."
+          mkdir -p _fmn-core
+          gh api repos/Uplift-Foundation/FMN-Core/tarball \
+            -H "Accept: application/vnd.github+json" \
+            > /tmp/fmn-core.tar.gz 2>/dev/null \
+          && tar -xzf /tmp/fmn-core.tar.gz -C _fmn-core --strip-components=1 \
+          || { echo "::error::Cannot access FMN-Core. Add GH_PAT secret with repo scope to this repository."; exit 1; }
 
       - name: Prepare build context
         run: cp -r _fmn-core/FMN.Vault ./FMN.Vault
