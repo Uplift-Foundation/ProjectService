@@ -25,6 +25,10 @@ services:
       Keycloak__AuthClientSecret: ${Keycloak__AuthClientSecret}
       HabitService__Url: ${HabitService__Url}
       TaskService__Url: ${TaskService__Url}
+      VAULT_ENABLED: ${VAULT_ENABLED:-false}
+      VAULT_ADDR: ${VAULT_ADDR:-https://vault.uplifttech.org}
+      VAULT_ROLE_ID: ${VAULT_ROLE_ID:-}
+      VAULT_SECRET_ID: ${VAULT_SECRET_ID:-}
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: 80
     depends_on:

@@ -20,6 +20,7 @@ env:
   REGISTRY: docker.io
   # github.repository as <account>/<repo>
   IMAGE_NAME: wtvamp/projectservice
+  SERVICE_DIR: ProjectService
 
 jobs:
   build:
@@ -35,6 +36,35 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          path: ProjectService
+
+      - name: Checkout FMN.Vault shared library
+        uses: actions/checkout@v4
+        with:
+          repository: Uplift-Foundation/FMN-Core
+          sparse-checkout: FMN.Vault
+          sparse-checkout-cone-mode: true
+          path: _fmn-core
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Prepare build context
+        run: cp -r _fmn-core/FMN.Vault ./FMN.Vault
+
+      # Fetch Docker Hub credentials from Vault (falls back to GitHub secrets)
+      - name: Import secrets from Vault
+        if: github.event_name != 'pull_request'
+        id: vault
+        continue-on-error: true
+        uses: hashicorp/vault-action@v3
+        with:
+          url: https://vault.uplifttech.org
+          method: jwt
+          role: fmn-cicd
+          jwtGithubAudience: https://github.com/Uplift-Foundation
+          secrets: |
+            secret/data/fmn/cicd/dockerhub username | VAULT_DOCKER_USERNAME ;
+            secret/data/fmn/cicd/dockerhub password | VAULT_DOCKER_PASSWORD
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
@@ -57,8 +87,8 @@ jobs:
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ env.VAULT_DOCKER_USERNAME || secrets.DOCKER_USERNAME }}
+          password: ${{ env.VAULT_DOCKER_PASSWORD || secrets.DOCKER_PASSWORD }}
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
@@ -68,14 +98,14 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
-          context: "{{defaultContext}}"
+          context: .
+          file: ${{ env.SERVICE_DIR }}/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

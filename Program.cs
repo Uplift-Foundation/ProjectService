@@ -7,11 +7,20 @@ using Asp.Versioning.ApiExplorer;
 using ProjectService.Data;
 using ProjectService.Services;
 using DotNetEnv;
+using FMN.Vault;
 
-// Load environment variables from .env file (most likely local dev)
-// In cloud environments, these variables are set in the environment
-// Most likely in Kubernetes secrets or ConfigMaps
-Env.Load();
+// Load secrets from Vault if enabled, otherwise fall back to .env file
+var vaultEnabled = Environment.GetEnvironmentVariable("VAULT_ENABLED") ?? "false";
+if (vaultEnabled.Equals("true", StringComparison.OrdinalIgnoreCase))
+{
+    var vaultClient = new FmnVaultClient("projectservice");
+    await vaultClient.LoadSecretsIntoEnvironmentAsync();
+}
+else
+{
+    // Fall back to .env file for local dev without Vault
+    Env.Load();
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
