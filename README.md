@@ -94,8 +94,14 @@ The ProjectService requires the following environment variables. These should be
 | `ConnectionString__DefaultConnection` | PostgreSQL connection string | `Host=projectdb;Database=project_db;Username=postgres;Password=yourpassword` |
 | `POSTGRES_PASSWORD` | PostgreSQL database password (Docker only) | `yourpassword` |
 | `POSTGRES_DB` | PostgreSQL database name (Docker only) | `project_db` |
+| `VAULT_ENABLED` | Enable HashiCorp Vault secret loading (optional) | `false` |
+| `VAULT_ADDR` | Vault server URL (optional) | `https://vault.uplifttech.org` |
+| `VAULT_ROLE_ID` | AppRole Role ID for local Vault auth (optional) | — |
+| `VAULT_SECRET_ID` | AppRole Secret ID for local Vault auth (optional) | — |
 
 **IMPORTANT**: Never commit `.env` files to source control. Obtain the appropriate `.env` file from your team lead.
+
+**Vault Integration**: When `VAULT_ENABLED=true`, secrets are loaded from HashiCorp Vault at startup instead of `.env` files. See [VAULT.md](../VAULT.md) for setup details.
 
 ### Setup Instructions
 
