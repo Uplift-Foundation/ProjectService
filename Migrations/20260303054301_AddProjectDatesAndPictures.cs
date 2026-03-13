@@ -11,20 +11,6 @@ namespace ProjectService.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "AfterPictureUrl",
-                table: "Projects",
-                type: "character varying(500)",
-                maxLength: 500,
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "BeforePictureUrl",
-                table: "Projects",
-                type: "character varying(500)",
-                maxLength: 500,
-                nullable: true);
-
             migrationBuilder.AddColumn<DateTime>(
                 name: "DueDate",
                 table: "Projects",
@@ -43,14 +29,6 @@ namespace ProjectService.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "AfterPictureUrl",
-                table: "Projects");
-
-            migrationBuilder.DropColumn(
-                name: "BeforePictureUrl",
-                table: "Projects");
-
             migrationBuilder.DropColumn(
                 name: "DueDate",
                 table: "Projects");
