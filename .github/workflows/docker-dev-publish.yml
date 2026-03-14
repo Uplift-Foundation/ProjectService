@@ -14,12 +14,11 @@ env:
   REGISTRY: docker.io
   IMAGE_NAME: wtvamp/projectservice
   SERVICE_DIR: ProjectService
-  DOTNET_ROOT: /Users/warrenthompson/.dotnet
 
 jobs:
   build:
 
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: ${{ vars.RUNNER_TYPE == 'self-hosted' && 'k8s-linux-x64' || 'ubuntu-latest' }}
     permissions:
       contents: read
       packages: write
@@ -29,10 +28,6 @@ jobs:
       GH_PAT_AVAILABLE: ${{ secrets.GH_PAT != '' }}
 
     steps:
-      - name: Clean workspace
-        run: |
-          rm -rf FMN.Vault _fmn-core publish Dockerfile.ci
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -64,13 +59,6 @@ jobs:
       - name: Prepare build context
         run: cp -r _fmn-core/FMN.Vault ./FMN.Vault
 
-      - name: Build .NET for linux-x64
-        run: |
-          cd ${{ env.SERVICE_DIR }}
-          $DOTNET_ROOT/dotnet publish -c Release -r linux-x64 --self-contained false -o ../publish
-        env:
-          DOTNET_CLI_TELEMETRY_OPTOUT: 1
-
       - name: Import secrets from Vault
         if: github.event_name != 'pull_request'
         id: vault
@@ -85,13 +73,22 @@ jobs:
             secret/data/fmn/cicd/dockerhub username | VAULT_DOCKER_USERNAME ;
             secret/data/fmn/cicd/dockerhub password | VAULT_DOCKER_PASSWORD
 
+      - name: Install cosign
+        if: github.event_name != 'pull_request'
+        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 #v3.5.0
+        with:
+          cosign-release: 'v2.2.4'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
-        run: |
-          echo "${{ env.VAULT_DOCKER_PASSWORD || secrets.DOCKER_PASSWORD }}" | \
-            docker login ${{ env.REGISTRY }} \
-              -u "${{ env.VAULT_DOCKER_USERNAME || secrets.DOCKER_USERNAME }}" \
-              --password-stdin
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ env.VAULT_DOCKER_USERNAME || secrets.DOCKER_USERNAME }}
+          password: ${{ env.VAULT_DOCKER_PASSWORD || secrets.DOCKER_PASSWORD }}
 
       - name: Extract Docker metadata
         id: meta
@@ -100,41 +97,21 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
       - name: Build and push Docker image
-        if: github.event_name != 'pull_request'
-        run: |
-          cat > Dockerfile.ci << 'DEOF'
-          FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-amd64
-          WORKDIR /app
-          EXPOSE 80
-          COPY publish/ .
-          ENTRYPOINT ["dotnet", "ProjectService.dll"]
-          DEOF
+        id: build-and-push
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
+        with:
+          context: .
+          file: ${{ env.SERVICE_DIR }}/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          platforms: linux/amd64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-          TAGS="${{ steps.meta.outputs.tags }}"
-          TAG_ARGS=""
-          while IFS= read -r tag; do
-            [ -n "$tag" ] && TAG_ARGS="$TAG_ARGS -t $tag"
-          done <<< "$TAGS"
-
-          docker buildx build \
-            --platform linux/amd64 \
-            --push \
-            $TAG_ARGS \
-            -f Dockerfile.ci \
-            .
-
-      - name: Build Docker image (PR only)
-        if: github.event_name == 'pull_request'
-        run: |
-          cat > Dockerfile.ci << 'DEOF'
-          FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-amd64
-          WORKDIR /app
-          EXPOSE 80
-          COPY publish/ .
-          ENTRYPOINT ["dotnet", "ProjectService.dll"]
-          DEOF
-
-          docker buildx build \
-            --platform linux/amd64 \
-            -f Dockerfile.ci \
-            .
+      - name: Sign the published Docker image
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+          DIGEST: ${{ steps.build-and-push.outputs.digest }}
+        run: echo "${{TAGS}}" | xargs -I {} cosign sign --yes {}@${{DIGEST}}
