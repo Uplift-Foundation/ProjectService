@@ -18,7 +18,7 @@ env:
 jobs:
   build:
 
-    runs-on: ${{ vars.RUNNER_TYPE == 'self-hosted' && 'k8s-linux-x64' || 'ubuntu-latest' }}
+    runs-on: ${{ vars.RUNNER_TYPE || 'ubuntu-latest' }}
     permissions:
       contents: read
       packages: write
