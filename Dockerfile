@@ -3,8 +3,6 @@ WORKDIR /app
 EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
-ENV DOTNET_NUGET_SIGNATURE_VERIFICATION=false \
-    NUGET_ENHANCED_NETWORK_ENABLED=true
 WORKDIR /src
 COPY ["ProjectService/ProjectService.csproj", "ProjectService/"]
 COPY ["FMN.Vault/FMN.Vault.csproj", "FMN.Vault/"]
